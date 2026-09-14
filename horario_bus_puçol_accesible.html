@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Horario del autobús — Puçol</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap');
+
+  :root{
+    --bg: #FAF7F0;
+    --panel: #FFFFFF;
+    --ink: #1B2430;
+    --ink-soft: #4A5568;
+    --sea: #0B5D6B;
+    --sea-dark: #073E48;
+    --sun: #E07A3E;
+    --sun-dark: #B85A26;
+    --note: #F4B400;
+    --note-ink: #4A3600;
+    --good: #1E7A46;
+    --line: #E4DCC8;
+  }
+
+  *{ box-sizing: border-box; }
+
+  body{
+    margin:0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Atkinson Hyperlegible', Arial, sans-serif;
+    font-size: 20px;
+    line-height: 1.5;
+    padding-bottom: 60px;
+  }
+
+  .wrap{
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 20px 18px 10px;
+  }
+
+  header.top{
+    text-align:center;
+    padding: 22px 18px 26px;
+    background: var(--sea-dark);
+    color: white;
+  }
+  header.top h1{
+    margin:0 0 6px;
+    font-size: 30px;
+    font-weight: 700;
+  }
+  header.top p{
+    margin:0;
+    font-size: 18px;
+    color: #CFE7EA;
+  }
+
+  .card{
+    background: var(--panel);
+    border: 2px solid var(--line);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  h2.step{
+    font-size: 22px;
+    margin: 0 0 14px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  h2.step .num{
+    background: var(--sea);
+    color:white;
+    width:34px; height:34px;
+    border-radius: 50%;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    font-size:18px;
+    flex-shrink:0;
+  }
+
+  .dir-btn{
+    display:block;
+    width:100%;
+    text-align:left;
+    padding: 18px 20px;
+    margin-bottom: 12px;
+    border-radius: 12px;
+    border: 3px solid var(--sea);
+    background: white;
+    color: var(--sea-dark);
+    font-family: inherit;
+    font-size: 20px;
+    font-weight: 700;
+    cursor:pointer;
+  }
+  .dir-btn:last-child{ margin-bottom:0; }
+  .dir-btn.selected{
+    background: var(--sea);
+    color: white;
+  }
+  .dir-btn .sub{
+    display:block;
+    font-weight:400;
+    font-size: 16px;
+    margin-top:3px;
+  }
+  .dir-btn.selected .sub{ color:#CFE7EA; }
+
+  select#stopSelect{
+    width:100%;
+    font-family: inherit;
+    font-size: 20px;
+    padding: 16px 14px;
+    border-radius: 12px;
+    border: 3px solid var(--sea);
+    background: white;
+    color: var(--ink);
+  }
+
+  .hidden{ display:none !important; }
+
+  .next-box{
+    text-align:center;
+    background: var(--good);
+    color:white;
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .next-box .label{
+    font-size:18px;
+    margin:0 0 6px;
+  }
+  .next-box .time{
+    font-size:52px;
+    font-weight:700;
+    margin:0;
+    letter-spacing: 1px;
+  }
+  .next-box .stopname{
+    font-size:17px;
+    margin-top:6px;
+    opacity:0.95;
+  }
+
+  .weekend-warning{
+    background: var(--sun);
+    color:white;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+    font-size:18px;
+    text-align:center;
+    font-weight:700;
+  }
+
+  table.times{
+    width:100%;
+    border-collapse: collapse;
+    font-size: 22px;
+  }
+  table.times th{
+    padding: 6px 10px 12px;
+    text-align:center;
+    font-size: 15px;
+    font-weight:700;
+    color: var(--ink-soft);
+    text-transform: none;
+    border-bottom: 2px solid var(--line);
+  }
+  table.times td{
+    padding: 14px 10px;
+    border-bottom: 2px solid var(--line);
+    text-align:center;
+  }
+  table.times tr:last-child td{ border-bottom:none; }
+  table.times td.hora{
+    font-weight:700;
+    font-size: 26px;
+    width: 50%;
+  }
+  table.times td.arrow{
+    color: var(--ink-soft);
+    font-size: 20px;
+    width: 0;
+    padding: 14px 4px;
+  }
+  table.times tr.next-row td{
+    background: #E8F6ED;
+    color: var(--good);
+    font-weight:700;
+  }
+  table.times tr.past-row td{
+    color: #A0A8B4;
+  }
+  .flag{
+    display:inline-block;
+    margin-left:8px;
+    background: var(--note);
+    color: var(--note-ink);
+    font-size: 15px;
+    font-weight:700;
+    padding: 2px 8px;
+    border-radius: 20px;
+    vertical-align: middle;
+  }
+  .no-stop{
+    color: var(--ink-soft);
+    font-size:17px;
+    padding: 10px 0;
+  }
+
+  .notes{
+    background: #FFF7DC;
+    border: 2px solid var(--note);
+    border-radius: 12px;
+    padding: 16px 18px;
+    font-size: 17px;
+    color: var(--note-ink);
+    margin-top: 6px;
+  }
+  .notes p{ margin: 6px 0; }
+  .notes strong{ display:block; margin-bottom:4px; }
+
+  .toggle-btn{
+    display:block;
+    width:100%;
+    text-align:center;
+    padding: 16px;
+    border-radius: 12px;
+    border: 3px solid var(--sun);
+    background: white;
+    color: var(--sun-dark);
+    font-family: inherit;
+    font-size: 18px;
+    font-weight: 700;
+    cursor:pointer;
+    margin-top: 6px;
+  }
+
+  .full-table-wrap{
+    overflow-x: auto;
+    margin-top: 16px;
+    border: 2px solid var(--line);
+    border-radius: 10px;
+  }
+  table.full{
+    border-collapse: collapse;
+    font-size: 15px;
+    min-width: 900px;
+  }
+  table.full th, table.full td{
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    text-align:center;
+    white-space: nowrap;
+  }
+  table.full th{
+    background: var(--sea-dark);
+    color:white;
+    font-weight:700;
+    position: sticky;
+    top:0;
+  }
+  table.full td.wait{ background:#FFE3CC; font-weight:700; }
+  table.full td.note{ background:#FFF3B0; font-weight:700; }
+  table.full td.empty{ color:#C3C3C3; }
+
+  footer.credit{
+    text-align:center;
+    font-size:14px;
+    color: var(--ink-soft);
+    padding: 20px;
+  }
+
+  @media print{
+    header.top{ background:none; color:var(--ink); }
+    .dir-btn, select, .toggle-btn, .next-box{ display:none !important; }
+    .full-table-wrap{ display:block !important; overflow:visible; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>🚌 Horario del autobús</h1>
+  <p>Playa Puçol ⇄ Urbanizaciones · Lunes a viernes (días laborables)</p>
+</header>
+
+<div class="wrap">
+
+  <div id="weekendWarning" class="weekend-warning hidden">
+    Hoy es fin de semana. Este horario solo funciona de lunes a viernes.
+  </div>
+
+  <div class="card">
+    <h2 class="step"><span class="num">1</span> ¿Hacia dónde vas?</h2>
+    <button class="dir-btn" id="btnDirA" onclick="chooseDirection('A')">
+      Hacia las Urbanizaciones
+      <span class="sub">Saliendo desde la Playa de Puçol</span>
+    </button>
+    <button class="dir-btn" id="btnDirB" onclick="chooseDirection('B')">
+      Hacia la Playa de Puçol
+      <span class="sub">Saliendo desde las Urbanizaciones</span>
+    </button>
+  </div>
+
+  <div class="card hidden" id="stepStop">
+    <h2 class="step"><span class="num">2</span> ¿Desde qué parada subes?</h2>
+    <select id="stopSelect" onchange="onOriginChange()">
+      <option value="">— Elige tu parada de salida —</option>
+    </select>
+  </div>
+
+  <div class="card hidden" id="stepDest">
+    <h2 class="step"><span class="num">3</span> ¿A qué parada quieres llegar?</h2>
+    <select id="destSelect" onchange="showTimes()">
+      <option value="">— Elige tu parada de llegada —</option>
+    </select>
+  </div>
+
+  <div id="nextBox" class="next-box hidden">
+    <p class="label">Próximo autobús</p>
+    <p class="time" id="nextTime">--:--</p>
+    <p class="stopname" id="nextStopName"></p>
+    <p class="time" id="nextArrTime" style="font-size:36px;margin-top:10px;"></p>
+    <p class="stopname" id="nextArrStopName"></p>
+  </div>
+
+  <div class="card hidden" id="stepTimes">
+    <h2 class="step"><span class="num">4</span> Horas de salida y de llegada</h2>
+    <table class="times" id="timesTable"></table>
+    <div class="notes hidden" id="stopNotes"></div>
+  </div>
+
+  <button class="toggle-btn" onclick="toggleFullTable()" id="fullTableBtn">
+    Ver la tabla completa de las dos rutas
+  </button>
+
+  <div class="card hidden" id="fullTableCard">
+    <h2 class="step" style="margin-bottom:6px;">Tabla completa</h2>
+    <p style="font-size:15px;color:var(--ink-soft);margin-top:0;">
+      Naranja = el autobús espera antes de seguir. Amarillo = aviso importante (lee las notas debajo de cada tabla).
+    </p>
+
+    <h3 style="margin-top:22px;">Playa Puçol → Urbanizaciones</h3>
+    <div class="full-table-wrap" id="fullTableA"></div>
+    <div class="notes" style="margin-top:12px;">
+      <p><strong>Aviso</strong> El autobús marcado con ⚠ no sigue el orden normal de paradas: después de salir, se dirige primero a "Avd. Mancomunitat – Centre de Salud" y desde ahí retoma la dirección Urbanizaciones.</p>
+      <p>Las horas en naranja indican una espera larga del autobús en RENFE / Avda. Molí de Vent antes de continuar.</p>
+    </div>
+
+    <h3 style="margin-top:28px;">Urbanizaciones → Playa Puçol</h3>
+    <div class="full-table-wrap" id="fullTableB"></div>
+    <div class="notes" style="margin-top:12px;">
+      <p><strong>Muy importante</strong> El autobús de las 07:58 NO debe salir de la parada RENFE antes de las 08:07 horas.</p>
+      <p>El último autobús del día (sale a las 19:45) termina su servicio en RENFE (20:09) y no continúa hasta Puçol.</p>
+    </div>
+  </div>
+
+  <p style="text-align:center;font-size:15px;color:var(--ink-soft);margin-top:26px;">
+    Puedes imprimir esta página o guardarla como PDF desde tu navegador para llevarla contigo.
+  </p>
+</div>
+
+<footer class="credit">Versión legible creada a partir del horario oficial de Puçol.</footer>
+
+<script>
+const STOPS_A = ["Rosa dels Vents","Plaça Assegador","Avda. Grau Vell,180","C/ Marjals,24","C/ Caminàs,22","C/ Caminàs,90","Avd. Mancomunitat – Centre de Salud","Avda. Mancomunitat – Avda. València","RENFE","Avda. Molí de Vent,4","IES Puçol","Polideportivo (Camino del Cementerio)","Avda. José Alfonso,47","Avda. José Alfonso,30","Avda. José Alfonso,18","Avda. Camp de Morvedre,30","Monasterios – Columna","Colegio Hispano","Sierra Calderona,1"];
+
+const TRIPS_A = [
+ {t:["07:11","07:12","07:13","07:14","07:20","07:21","07:22","07:23","07:26","07:29","07:32","07:33","07:35","07:36","07:37","07:39","07:41","07:42","07:43"]},
+ {t:["08:20","08:21",null,null,null,null,"08:10","08:11",null,"08:13","08:16","08:17","08:19","08:20","08:21","08:23","08:25","08:26","08:27"], flag:"deviation"},
+ {t:["09:04","09:05","09:06","09:07","09:13","09:14","08:54","08:55","08:58","09:01","09:04","09:05","09:07","09:08","09:09","09:11","09:13","09:14","09:15"]},
+ {t:["09:52","09:53","09:54","09:55","10:01","10:02","09:42","09:43","09:46","09:49","09:52","09:53","09:55","09:56","09:57","09:59","10:01","10:02","10:03"]},
+ {t:["10:40","10:41","10:42","10:43","10:49","10:50","10:30","10:31","10:34","11:00","11:03","11:04","11:06","11:07","11:08","11:10","11:12","11:13","11:14"], flag:"wait", waitCols:[8,9]},
+ {t:["11:51","11:52","11:53","11:54","12:00","12:01","11:41","11:42","11:45","12:11","12:14","12:15","12:17","12:18","12:19","12:21","12:23","12:24","12:25"]},
+ {t:["13:02","13:03","13:04","13:05","13:11","13:12","12:52","12:53","12:56","13:22","13:25","13:26","13:28","13:29","13:30","13:32","13:34","13:35","13:36"], flag:"wait", waitCols:[8,9]},
+ {t:["14:13","14:14","14:15","14:16","14:22","14:23","14:03","14:04","14:07","15:12","15:15","15:16","15:18","15:19","15:20","15:22","15:24","15:25","15:26"], flag:"wait", waitCols:[8,9]},
+ {t:["16:03","16:04","16:05","16:06","16:12","16:13","15:53","15:54","15:57","16:23","16:26","16:27","16:29","16:30","16:31","16:33","16:35","16:36","16:37"]},
+ {t:["17:37","17:38","17:39","17:40","17:46","17:47","17:27","17:28","17:31","17:57","18:00","18:01","18:03","18:04","18:05","18:07","18:09","18:10","18:11"]},
+ {t:["19:11","19:12","19:13","19:14","19:20","19:21","19:01","19:02","19:05","19:31","19:34","19:35","19:37","19:38","19:39","19:41","19:43","19:44","19:45"]}
+];
+
+const STOPS_B = ["Colegio Hispano","Sierra Calderona,1","Monasterios – Columna","Avda. Camp de Morvedre,11","Alfinach – Retor Emilio Bayarri, frente 26","Alfinach – Retor Emilio Bayarri, frente s/n","Colegio Alfinach","IES Puçol","Avda. Corts Valencianes,1","Avda. Molí de Vent,5","Avda. València,41","RENFE","C/Caminàs – Centre de Salud","C/Caminàs,39","C/Caminàs,1","Riu Túria,1","Riu Túria,38","Barranc Puig,14","Avda. Pescadors,219","Avda. Pescadors,171","Avda. Pescadors,69","Rosa dels Vents"];
+
+const TRIPS_B = [
+ {t:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,"07:05","07:06","07:07","07:08","07:09","07:10","07:11"]},
+ {t:["07:43","07:43","07:44","07:46","07:47","07:48","07:50","07:52","07:56","07:57","07:58","08:07",null,null,null,null,null,null,null,null,null,null], flag:"minTime", noteCol:11},
+ {t:["08:27","08:27","08:28","08:30","08:31","08:32","08:34","08:36","08:40","08:41","08:42","08:51","08:54","08:55","08:56","08:58","08:59","09:00","09:01","09:02","09:03","09:04"]},
+ {t:["09:15","09:15","09:16","09:18","09:19","09:20","09:22","09:24","09:28","09:29","09:30","09:39","09:42","09:43","09:44","09:46","09:47","09:48","09:49","09:50","09:51","09:52"]},
+ {t:["10:03","10:03","10:04","10:06","10:07","10:08","10:10","10:12","10:16","10:17","10:18","10:27","10:30","10:31","10:32","10:34","10:35","10:36","10:37","10:38","10:39","10:40"]},
+ {t:["11:14","11:14","11:15","11:17","11:18","11:19","11:21","11:23","11:27","11:28","11:29","11:38","11:41","11:42","11:43","11:45","11:46","11:47","11:48","11:49","11:50","11:51"]},
+ {t:["12:25","12:25","12:26","12:28","12:29","12:30","12:32","12:34","12:38","12:39","12:40","12:49","12:52","12:53","12:54","12:56","12:57","12:58","12:59","13:00","13:01","13:02"]},
+ {t:["13:36","13:36","13:37","13:39","13:40","13:41","13:43","13:45","13:49","13:50","13:51","14:00","14:03","14:04","14:05","14:07","14:08","14:09","14:10","14:11","14:12","14:13"]},
+ {t:["15:26","15:26","15:27","15:29","15:30","15:31","15:33","15:35","15:39","15:40","15:41","15:50","15:53","15:54","15:55","15:57","15:58","15:59","16:00","16:01","16:02","16:03"]},
+ {t:["16:37","16:37","16:38","16:40","16:41","16:42","16:44","16:46","16:50","16:51","16:52","17:01","17:27","17:28","17:29","17:31","17:32","17:33","17:34","17:35","17:36","17:37"], flag:"wait", waitCols:[11,12]},
+ {t:["18:11","18:11","18:12","18:14","18:15","18:16","18:18","18:20","18:24","18:25","18:26","18:35","19:01","19:02","19:03","19:05","19:06","19:07","19:08","19:09","19:10","19:11"]},
+ {t:["19:45","19:45","19:46","19:48","19:49","19:50","19:52","19:54","19:58","19:59","20:00","20:09",null,null,null,null,null,null,null,null,null,null], flag:"endOfService"}
+];
+
+let currentDir = null;
+
+function chooseDirection(dir){
+  currentDir = dir;
+  document.getElementById('btnDirA').classList.toggle('selected', dir==='A');
+  document.getElementById('btnDirB').classList.toggle('selected', dir==='B');
+
+  const stops = dir === 'A' ? STOPS_A : STOPS_B;
+  const select = document.getElementById('stopSelect');
+  select.innerHTML = '<option value="">— Elige tu parada —</option>';
+  stops.forEach((name, idx) => {
+    const opt = document.createElement('option');
+    opt.value = idx;
+    opt.textContent = name;
+    select.appendChild(opt);
+  });
+
+  document.getElementById('stepStop').classList.remove('hidden');
+  document.getElementById('stepDest').classList.add('hidden');
+  document.getElementById('stepTimes').classList.add('hidden');
+  document.getElementById('nextBox').classList.add('hidden');
+  select.value = "";
+  select.focus();
+}
+
+function onOriginChange(){
+  const originVal = document.getElementById('stopSelect').value;
+  const stepDest = document.getElementById('stepDest');
+  const destSelect = document.getElementById('destSelect');
+  const stepTimes = document.getElementById('stepTimes');
+  const nextBox = document.getElementById('nextBox');
+
+  if(originVal === ""){
+    stepDest.classList.add('hidden');
+    stepTimes.classList.add('hidden');
+    nextBox.classList.add('hidden');
+    return;
+  }
+
+  const originIdx = parseInt(originVal, 10);
+  const stops = currentDir === 'A' ? STOPS_A : STOPS_B;
+
+  destSelect.innerHTML = '<option value="">— Elige tu parada de llegada —</option>';
+  stops.forEach((name, idx) => {
+    if(idx <= originIdx) return;
+    const opt = document.createElement('option');
+    opt.value = idx;
+    opt.textContent = name;
+    destSelect.appendChild(opt);
+  });
+
+  stepDest.classList.remove('hidden');
+  stepTimes.classList.add('hidden');
+  nextBox.classList.add('hidden');
+  destSelect.value = "";
+  destSelect.focus();
+}
+
+function parseTimeToMinutes(hhmm){
+  const [h,m] = hhmm.split(':').map(Number);
+  return h*60+m;
+}
+
+function showTimes(){
+  const originVal = document.getElementById('stopSelect').value;
+  const destVal = document.getElementById('destSelect').value;
+  const timesCard = document.getElementById('stepTimes');
+  const nextBox = document.getElementById('nextBox');
+  if(originVal === "" || destVal === ""){
+    timesCard.classList.add('hidden');
+    nextBox.classList.add('hidden');
+    return;
+  }
+  const originIdx = parseInt(originVal, 10);
+  const destIdx = parseInt(destVal, 10);
+  const stops = currentDir === 'A' ? STOPS_A : STOPS_B;
+  const trips = currentDir === 'A' ? TRIPS_A : TRIPS_B;
+  const originName = stops[originIdx];
+  const destName = stops[destIdx];
+
+  const now = new Date();
+  const nowMinutes = now.getHours()*60 + now.getMinutes();
+
+  const rows = [];
+  trips.forEach(trip => {
+    const dep = trip.t[originIdx];
+    const arr = trip.t[destIdx];
+    if(dep === null || dep === undefined) return;
+    if(arr === null || arr === undefined) return;
+    const depMins = parseTimeToMinutes(dep);
+    const arrMins = parseTimeToMinutes(arr);
+    if(arrMins <= depMins) return; // descarta el viaje especial que no sigue el orden normal
+    rows.push({dep, arr, flag: trip.flag, waitCols: trip.waitCols, noteCol: trip.noteCol});
+  });
+
+  let nextRow = null;
+  const table = document.getElementById('timesTable');
+  table.innerHTML = '<thead><tr><th>Sale de<br>' + originName + '</th><th></th><th>Llega a<br>' + destName + '</th></tr></thead>';
+  const tbody = document.createElement('tbody');
+  rows.forEach(r => {
+    const mins = parseTimeToMinutes(r.dep);
+    const tr = document.createElement('tr');
+    if(mins >= nowMinutes && !nextRow){
+      nextRow = r;
+      tr.classList.add('next-row');
+    } else if(mins < nowMinutes){
+      tr.classList.add('past-row');
+    }
+
+    const tdDep = document.createElement('td');
+    tdDep.className = 'hora';
+    let flagHtml = '';
+    if(r.flag === 'wait' && r.waitCols && (r.waitCols.includes(originIdx) || r.waitCols.includes(destIdx))){
+      flagHtml = '<span class="flag">Espera larga en el trayecto</span>';
+    } else if(r.flag === 'minTime'){
+      flagHtml = '<span class="flag">No sale antes</span>';
+    } else if(r.flag === 'endOfService'){
+      flagHtml = '<span class="flag">Último autobús del día</span>';
+    }
+    tdDep.innerHTML = r.dep + flagHtml;
+
+    const tdArrow = document.createElement('td');
+    tdArrow.className = 'arrow';
+    tdArrow.textContent = '→';
+
+    const tdArr = document.createElement('td');
+    tdArr.className = 'hora';
+    tdArr.textContent = r.arr;
+
+    tr.appendChild(tdDep);
+    tr.appendChild(tdArrow);
+    tr.appendChild(tdArr);
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+
+  if(rows.length === 0){
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+    td.className = 'no-stop';
+    td.setAttribute('colspan','3');
+    td.textContent = 'No hay ningún autobús que haga este trayecto completo.';
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+  }
+
+  const notesBox = document.getElementById('stopNotes');
+  let notesHtml = '';
+  if(currentDir === 'A' && originIdx <= 8 && destIdx >= 9){
+    notesHtml += '<p><strong>Aviso</strong> En algunos autobuses de este trayecto, el bus espera bastante tiempo en RENFE antes de seguir hacia Avda. Molí de Vent,4. Es normal, no te preocupes si está parado ahí.</p>';
+  }
+  if(currentDir === 'A' && originIdx <= 6 && destIdx >= 6){
+    notesHtml += '<p><strong>Aviso</strong> El autobús de primera hora de la mañana (el que llega a "Avd. Mancomunitat – Centre de Salud" hacia las 08:10) no sigue el orden normal de paradas. Por eso no aparece en esta lista si tu trayecto lo cruza; consulta la tabla completa si necesitas ese horario en concreto.</p>';
+  }
+  if(currentDir === 'B' && originIdx <= 11 && destIdx >= 11){
+    notesHtml += '<p><strong>Muy importante</strong> El autobús que pasa por Avda. València,41 a las 07:58 NO sale de la parada RENFE antes de las 08:07.</p>';
+  }
+  if(currentDir === 'B' && originIdx <= 11 && destIdx >= 12){
+    notesHtml += '<p><strong>Aviso</strong> El último autobús del día termina su servicio en RENFE a las 20:09 y no continúa más allá.</p>';
+  }
+  if(currentDir === 'B' && originIdx <= 12 && destIdx >= 12){
+    notesHtml += '<p><strong>Aviso</strong> En el trayecto de las 16:52, el autobús espera bastante tiempo entre RENFE y C/Caminàs – Centre de Salud. Es normal, no te preocupes si está parado ahí.</p>';
+  }
+  if(notesHtml){
+    notesBox.innerHTML = notesHtml;
+    notesBox.classList.remove('hidden');
+  } else {
+    notesBox.classList.add('hidden');
+  }
+
+  timesCard.classList.remove('hidden');
+
+  const nextArrTime = document.getElementById('nextArrTime');
+  const nextArrStopName = document.getElementById('nextArrStopName');
+  if(nextRow){
+    document.getElementById('nextTime').textContent = nextRow.dep;
+    document.getElementById('nextStopName').textContent = 'sale de ' + originName;
+    nextArrTime.textContent = nextRow.arr;
+    nextArrStopName.textContent = 'llega a ' + destName;
+    nextBox.classList.remove('hidden');
+  } else if(rows.length > 0){
+    document.getElementById('nextTime').textContent = 'Mañana';
+    document.getElementById('nextStopName').textContent = 'Ya ha pasado el último autobús de hoy para este trayecto';
+    nextArrTime.textContent = '';
+    nextArrStopName.textContent = '';
+    nextBox.classList.remove('hidden');
+  } else {
+    nextBox.classList.add('hidden');
+  }
+}
+
+function buildFullTable(containerId, stops, trips){
+  const container = document.getElementById(containerId);
+  const table = document.createElement('table');
+  table.className = 'full';
+  const thead = document.createElement('thead');
+  const trh = document.createElement('tr');
+  stops.forEach(s => {
+    const th = document.createElement('th');
+    th.textContent = s;
+    trh.appendChild(th);
+  });
+  thead.appendChild(trh);
+  table.appendChild(thead);
+
+  const tbody = document.createElement('tbody');
+  trips.forEach(trip => {
+    const tr = document.createElement('tr');
+    trip.t.forEach((val, i) => {
+      const td = document.createElement('td');
+      if(val === null || val === undefined){
+        td.textContent = '—';
+        td.className = 'empty';
+      } else {
+        td.textContent = val;
+        if(trip.waitCols && trip.waitCols.includes(i)) td.classList.add('wait');
+        if(trip.flag === 'deviation' && i === 6) td.classList.add('note');
+        if(trip.flag === 'minTime' && i === trip.noteCol) td.classList.add('note');
+      }
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  container.appendChild(table);
+}
+
+let fullTableBuilt = false;
+function toggleFullTable(){
+  const card = document.getElementById('fullTableCard');
+  const btn = document.getElementById('fullTableBtn');
+  const willShow = card.classList.contains('hidden');
+  if(willShow && !fullTableBuilt){
+    buildFullTable('fullTableA', STOPS_A, TRIPS_A);
+    buildFullTable('fullTableB', STOPS_B, TRIPS_B);
+    fullTableBuilt = true;
+  }
+  card.classList.toggle('hidden');
+  btn.textContent = willShow ? 'Ocultar la tabla completa' : 'Ver la tabla completa de las dos rutas';
+}
+
+(function checkWeekend(){
+  const day = new Date().getDay();
+  if(day === 0 || day === 6){
+    document.getElementById('weekendWarning').classList.remove('hidden');
+  }
+})();
+</script>
+
+</body>
+</html>
